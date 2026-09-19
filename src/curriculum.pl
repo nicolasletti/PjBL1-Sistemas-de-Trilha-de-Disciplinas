@@ -36,6 +36,20 @@ disciplina(sistemas_operacionais, obrigatoria, 4, 4).
 disciplina(redes_convergentes, obrigatoria, 4, 4).
 disciplina(modelagem_sistemas_computacionais, obrigatoria, 4, 4).
 
+% --- 5º Período ---
+disciplina(complexidade_algoritmos, obrigatoria, 4, 5).
+disciplina(metodos_quantitativos_computacao, obrigatoria, 4, 5).
+disciplina(resolucao_problemas_grafos, obrigatoria, 6, 5).
+disciplina(metodos_pesquisa_cientifica, obrigatoria, 4, 5).
+disciplina(ec_inovando_colaborativamente, obrigatoria, 6, 5).
+
+% --- 6º Período ---
+disciplina(aprendizagem_maquina, obrigatoria, 4, 6).
+disciplina(inteligencia_artificial, obrigatoria, 4, 6).
+disciplina(programacao_distribuida, obrigatoria, 4, 6).
+disciplina(gestao_projetos_metodos_ageis, obrigatoria, 6, 6).
+disciplina(pesquisa_aplicada, obrigatoria, 4, 6).
+disciplina(engenharia_software, obrigatoria, 4, 6).
 
 % prerequisito(Disciplina, Prerequisito).
 % Cadeia com profundidade >= 3 para testar a recursão na Camada 3:
@@ -57,17 +71,73 @@ prerequisito(programacao_web, programacao_imperativa).
 % Incluindo apenas as disciplinas concluídas com sucesso (Aprovado).
 % O que não está aqui, a regra "pode_cursar/2" da Camada 2 considerará como pendente.
 
-cursou(aluno_real, fundamentos_sistemas_ciberfisicos).
-cursou(aluno_real, logica_matematica).
-cursou(aluno_real, filosofia).
-cursou(aluno_real, ec_navegando_computacao).
+% =========================================================
+% HISTÓRICOS DOS ALUNOS FICTÍCIOS
+% =========================================================
 
-cursou(aluno_real, arquitetura_banco_dados).
-cursou(aluno_real, programacao_imperativa).
-cursou(aluno_real, conectividade_sistemas).
-cursou(aluno_real, etica).
+% ---------------------------------------------------------
+% ANA: ALUNA ADIANTADA
+% Concluiu todas as disciplinas do 1º ao 3º período
+% e algumas disciplinas do 4º período.
+% ---------------------------------------------------------
 
-cursou(aluno_real, ec_criando_solucoes).
-cursou(aluno_real, poo).
-cursou(aluno_real, seguranca_informacao).
-cursou(aluno_real, clinica_tic).
+% 1º período
+cursou(ana, fundamentos_sistemas_ciberfisicos).
+cursou(ana, logica_matematica).
+cursou(ana, filosofia).
+cursou(ana, ec_navegando_computacao).
+cursou(ana, raciocinio_algoritmico).
+
+% 2º período
+cursou(ana, natureza_discreta).
+cursou(ana, arquitetura_banco_dados).
+cursou(ana, programacao_imperativa).
+cursou(ana, programacao_web).
+cursou(ana, conectividade_sistemas).
+cursou(ana, etica).
+
+% 3º período
+cursou(ana, modelagem_fenomenos_fisicos).
+cursou(ana, ec_criando_solucoes).
+cursou(ana, poo).
+cursou(ana, seguranca_informacao).
+cursou(ana, performance_sistemas).
+cursou(ana, clinica_tic).
+
+% Parte do 4º período
+cursou(ana, teologia_sociedade).
+cursou(ana, resolucao_problemas_estruturados).
+cursou(ana, programacao_logica_funcional).
+cursou(ana, sistemas_operacionais).
+
+
+% ---------------------------------------------------------
+% BRUNO: ALUNO NO RITMO NORMAL
+% Concluiu integralmente o 1º e o 2º períodos.
+% Está pronto para avançar para o 3º período.
+% ---------------------------------------------------------
+
+% 1º período
+cursou(bruno, fundamentos_sistemas_ciberfisicos).
+cursou(bruno, logica_matematica).
+cursou(bruno, filosofia).
+cursou(bruno, ec_navegando_computacao).
+cursou(bruno, raciocinio_algoritmico).
+
+% 2º período
+cursou(bruno, natureza_discreta).
+cursou(bruno, arquitetura_banco_dados).
+cursou(bruno, programacao_imperativa).
+cursou(bruno, programacao_web).
+cursou(bruno, conectividade_sistemas).
+cursou(bruno, etica).
+
+% ---------------------------------------------------------
+% CARLA: ALUNA ATRASADA
+% Concluiu somente parte do 1º período.
+% Ainda possui disciplinas básicas pendentes.
+% ---------------------------------------------------------
+
+cursou(carla, fundamentos_sistemas_ciberfisicos).
+cursou(carla, filosofia).
+cursou(carla, ec_navegando_computacao).
