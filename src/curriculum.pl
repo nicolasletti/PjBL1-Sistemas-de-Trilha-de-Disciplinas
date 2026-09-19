@@ -1,5 +1,6 @@
-trabalho de redes: % =========================================================
-% CAMADA 1: BASE DE FATOS (curriculum.pl)% =========================================================
+% =========================================================
+% CAMADA 1: TRABALHO DE REDES
+% =========================================================
 
 % disciplina(Nome, Tipo, Creditos, SemestreSugerido).
 % Tipo: {obrigatoria, eletiva}
