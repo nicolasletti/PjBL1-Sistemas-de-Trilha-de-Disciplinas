@@ -45,4 +45,4 @@ imprimir_trilha([], _).
 imprimir_trilha([Semestre|Resto], N) :-
     format('Semestre ~w: ~w~n', [N, Semestre]),
     Proximo is N + 1,
-    imprimir_trilha(Resto, Proximo). **
+    imprimir_trilha(Resto, Proximo).
