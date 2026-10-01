@@ -1,48 +1,246 @@
 % =========================================================
-% SCRIPT PRINCIPAL E DEMONSTRAÇÃO
+% ARQUIVO PRINCIPAL E DEMONSTRACAO
 % =========================================================
 
-:- ensure_loaded('curriculum.pl').
-:- ensure_loaded('elegibilidade.pl').
+% trilhas.pl carrega elegibilidade.pl,
+% que por sua vez carrega curriculum.pl.
 :- ensure_loaded('trilhas.pl').
+
+
+% =========================================================
+% DEMONSTRACAO COMPLETA
+% =========================================================
 
 demo :-
     writeln('================================================='),
     writeln('          SISTEMA CURRICULUM ADVISOR             '),
     writeln('================================================='),
     nl,
-    
-    % 1. CAMADA 1: Consulta simples
-    writeln('--> CAMADA 1: Disciplinas do 1º Período'),
-    forall(disciplina(D, Tipo, C, 1), format(' - ~w (~w, ~w cr)~n', [D, Tipo, C])),
-    nl,
 
-    % 2. CAMADA 2: Elegibilidade dos alunos
-    writeln('--> CAMADA 2: Diagnóstico dos Alunos'),
-    forall(aluno(A), (
-        creditos_cursados(A, Creds),
-        disciplinas_liberadas(A, Lib),
-        format('Aluno: ~w | Créditos Cursados: ~w~n', [A, Creds]),
-        format('  Disciplinas Liberadas: ~w~n~n', [Lib])
-    )),
+    demonstrar_camada_1,
+    demonstrar_camada_2,
+    demonstrar_fecho_transitivo,
+    demonstrar_ciclos,
+    demonstrar_trilha,
 
-    % 3. CAMADA 3: Fecho Transitivo
-    writeln('--> CAMADA 3: Teste de Cadeia Transitiva (profundidade >= 3)'),
-    format('Pré-requisitos transitivos de programacao_logica_funcional:~n'),
-    forall(prerequisito_transitivo(programacao_logica_funcional, Ancestral),
-        format(' - Depende de: ~w~n', [Ancestral])),
-    nl,
-
-    % 4. CAMADA 3: Geração de Trilha
-    writeln('--> CAMADA 3: Trilha de Formatura Simulada (Bruno - Máx 24 créditos/sem)'),
-    (   trilha_valida(bruno, 24, Trilha)
-    ->  imprimir_trilha(Trilha, 1)
-    ;   writeln('Nenhuma trilha válida foi encontrada.')
-    ),
+    writeln('================================================='),
+    writeln('              FIM DA DEMONSTRACAO                '),
     writeln('=================================================').
 
+
+% =========================================================
+% CAMADA 1: BASE DE FATOS
+% =========================================================
+
+demonstrar_camada_1 :-
+    writeln('--> CAMADA 1: Disciplinas do 1o periodo'),
+
+    forall(
+        disciplina(
+            Disciplina,
+            Tipo,
+            Creditos,
+            1
+        ),
+        format(
+            ' - ~w (~w, ~w creditos)~n',
+            [Disciplina, Tipo, Creditos]
+        )
+    ),
+
+    nl.
+
+
+% =========================================================
+% CAMADA 2: ELEGIBILIDADE
+% =========================================================
+
+demonstrar_camada_2 :-
+    writeln('--> CAMADA 2: Diagnostico dos alunos'),
+
+    forall(
+        aluno(Aluno),
+        demonstrar_aluno(Aluno)
+    ),
+
+    nl.
+
+
+demonstrar_aluno(Aluno) :-
+    creditos_cursados(
+        Aluno,
+        TotalCreditos
+    ),
+
+    disciplinas_liberadas(
+        Aluno,
+        Liberadas
+    ),
+
+    disciplinas_pendentes(
+        Aluno,
+        Pendentes
+    ),
+
+    format(
+        'Aluno: ~w~n',
+        [Aluno]
+    ),
+
+    format(
+        '  Creditos cursados: ~w~n',
+        [TotalCreditos]
+    ),
+
+    format(
+        '  Disciplinas liberadas: ~w~n',
+        [Liberadas]
+    ),
+
+    format(
+        '  Disciplinas obrigatorias pendentes: ~w~n~n',
+        [Pendentes]
+    ).
+
+
+% =========================================================
+% CAMADA 3: FECHO TRANSITIVO
+% =========================================================
+
+demonstrar_fecho_transitivo :-
+    writeln('--> CAMADA 3: Fecho transitivo'),
+
+    writeln(
+        'Pre-requisitos diretos e indiretos de programacao_logica_funcional:'
+    ),
+
+    setof(
+        Ancestral,
+        prerequisito_transitivo(
+            programacao_logica_funcional,
+            Ancestral
+        ),
+        Ancestrais
+    ),
+
+    imprimir_lista(Ancestrais),
+
+    nl.
+
+
+% =========================================================
+% CAMADA 3: DETECCAO DE CICLOS
+% =========================================================
+
+demonstrar_ciclos :-
+    writeln('--> CAMADA 3: Deteccao de ciclos'),
+
+    (
+        base_sem_ciclos
+    ->
+        writeln('Nenhum ciclo foi encontrado na base principal.')
+    ;
+        writeln('ATENCAO: foi encontrado um ciclo na base.')
+    ),
+
+    nl.
+
+
+% =========================================================
+% CAMADA 3: GERACAO DE TRILHA
+% =========================================================
+
+demonstrar_trilha :-
+    writeln(
+        '--> CAMADA 3: Trilha simulada para Ana'
+    ),
+
+    writeln(
+        'Limite: 24 creditos por semestre'
+    ),
+
+    % once/1 solicita somente a primeira trilha encontrada.
+    % Isso reduz o risco de explosao combinatoria no demo.
+    (
+        once(trilha_valida(ana, 24, Trilha))
+    ->
+        imprimir_trilha(Trilha, 1)
+    ;
+        writeln(
+            'Nenhuma trilha valida foi encontrada.'
+        )
+    ),
+
+    nl.
+
+
+% =========================================================
+% IMPRESSAO DAS LISTAS
+% =========================================================
+
+imprimir_lista([]).
+
+imprimir_lista([Elemento | Resto]) :-
+    format(
+        ' - ~w~n',
+        [Elemento]
+    ),
+
+    imprimir_lista(Resto).
+
+
+% =========================================================
+% IMPRESSAO DA TRILHA
+% =========================================================
+
 imprimir_trilha([], _).
-imprimir_trilha([Semestre|Resto], N) :-
-    format('Semestre ~w: ~w~n', [N, Semestre]),
-    Proximo is N + 1,
-    imprimir_trilha(Resto, Proximo).
+
+imprimir_trilha(
+    [Semestre | Resto],
+    NumeroSemestre
+) :-
+    creditos_do_semestre(
+        Semestre,
+        TotalCreditos
+    ),
+
+    format(
+        'Semestre ~w (~w creditos): ~w~n',
+        [
+            NumeroSemestre,
+            TotalCreditos,
+            Semestre
+        ]
+    ),
+
+    ProximoSemestre is NumeroSemestre + 1,
+
+    imprimir_trilha(
+        Resto,
+        ProximoSemestre
+    ).
+
+
+% =========================================================
+% SOMA DOS CREDITOS DE UM SEMESTRE
+% =========================================================
+
+creditos_do_semestre([], 0).
+
+creditos_do_semestre(
+    [Disciplina | Resto],
+    Total
+) :-
+    disciplina(
+        Disciplina,
+        _,
+        Creditos,
+        _
+    ),
+
+    creditos_do_semestre(
+        Resto,
+        Parcial
+    ),
+
+    Total is Creditos + Parcial.
