@@ -52,20 +52,28 @@ disciplina(gestao_projetos_metodos_ageis, obrigatoria, 6, 6).
 disciplina(pesquisa_aplicada, obrigatoria, 4, 6).
 disciplina(engenharia_software, obrigatoria, 4, 6).
 
-% prerequisito(Disciplina, Prerequisito).
+% prerequisito (Disciplina, Prerequisito).
 % Cadeia com profundidade >= 3 para testar a recursão na Camada 3:
-% raciocinio_algoritmico -> programacao_imperativa -> poo -> programacao_logica_funcional
+
 prerequisito(programacao_imperativa, raciocinio_algoritmico).
 prerequisito(poo, programacao_imperativa).
 prerequisito(programacao_logica_funcional, poo).
-
-% Outras dependências lógicas sugeridas
 prerequisito(conectividade_sistemas, fundamentos_sistemas_ciberfisicos).
+
 prerequisito(redes_convergentes, conectividade_sistemas).
 prerequisito(natureza_discreta, logica_matematica).
 prerequisito(arquitetura_banco_dados, raciocinio_algoritmico).
 prerequisito(big_data, arquitetura_banco_dados).
+
 prerequisito(programacao_web, programacao_imperativa).
+prerequisito(complexidade_algoritmos, resolucao_problemas_estruturados).
+prerequisito(resolucao_problemas_grafos, natureza_discreta).
+prerequisito(aprendizagem_maquina, metodos_quantitativos_computacao).
+
+prerequisito(inteligencia_artificial, programacao_logica_funcional).
+prerequisito(programacao_distribuida, redes_convergentes).
+prerequisito(engenharia_software, modelagem_sistemas_computacionais).
+prerequisito(pesquisa_aplicada, metodos_pesquisa_cientifica).
 
 
 % cursou(Aluno, Disciplina).
