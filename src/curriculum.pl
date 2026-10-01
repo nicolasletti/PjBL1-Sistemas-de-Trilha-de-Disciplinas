@@ -1,5 +1,5 @@
 % =========================================================
-% CAMADA 1: TRABALHO DE REDES
+% CAMADA 1: BASE DE FATOS
 % =========================================================
 
 % disciplina(Nome, Tipo, Creditos, SemestreSugerido).
