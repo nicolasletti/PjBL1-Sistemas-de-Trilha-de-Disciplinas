@@ -1,74 +1,316 @@
 % =========================================================
-% CAMADA 3: FECHO TRANSITIVO E GERAÇÃO DE TRILHAS
+% CAMADA 3: FECHO TRANSITIVO E GERACAO DE TRILHAS
 % =========================================================
 
-:- ensure_loaded('curriculum.pl').
 :- ensure_loaded('elegibilidade.pl').
 
-% ---------------------------------------------------------
-% 1. FECHO TRANSITIVO E CICLOS
-% ---------------------------------------------------------
 
-% Caso base: Pré-requisito direto
+% =========================================================
+% 1. FECHO TRANSITIVO DE PRE-REQUISITOS
+% =========================================================
+
+% prerequisito_transitivo(+Disciplina, -Ancestral)
+%
+% Verdadeiro quando Ancestral e um pre-requisito direto
+% ou indireto de Disciplina.
+%
+% A lista de visitados impede recursao infinita caso
+% exista um ciclo na base de pre-requisitos.
+
 prerequisito_transitivo(Disciplina, Ancestral) :-
-    prerequisito(Disciplina, Ancestral).
+    caminho_prerequisito(
+        Disciplina,
+        Ancestral,
+        [Disciplina]
+    ).
 
-% Caso recursivo: Pré-requisito indireto (Fecho Transitivo)
-prerequisito_transitivo(Disciplina, Ancestral) :-
-    prerequisito(Disciplina, Intermediario),
-    prerequisito_transitivo(Intermediario, Ancestral).
 
-% Detecção de ciclos na base de fatos (ex.: A -> B -> A)
+% caminho_prerequisito(
+%     +Disciplina,
+%     -Ancestral,
+%     +Visitados
+% )
+%
+% Primeiro encontra um pre-requisito direto.
+% Depois pode continuar procurando pre-requisitos indiretos.
+
+caminho_prerequisito(Disciplina, Ancestral, Visitados) :-
+    prerequisito(Disciplina, Proximo),
+    (
+        % Caso base: encontrou um pre-requisito direto.
+        Ancestral = Proximo
+    ;
+        % Caso recursivo: continua procurando na cadeia.
+        % O proximo no nao pode ter sido visitado.
+        \+ member(Proximo, Visitados),
+
+        caminho_prerequisito(
+            Proximo,
+            Ancestral,
+            [Proximo | Visitados]
+        )
+    ).
+
+
+% =========================================================
+% 2. DETECCAO DE CICLOS
+% =========================================================
+
+% existe_ciclo(+Disciplina)
+%
+% Existe ciclo quando, seguindo os pre-requisitos,
+% uma disciplina volta a depender dela mesma.
+
 existe_ciclo(Disciplina) :-
-    prerequisito_transitivo(Disciplina, Disciplina).
+    caminho_prerequisito(
+        Disciplina,
+        Disciplina,
+        [Disciplina]
+    ).
 
 
-% ---------------------------------------------------------
-% 2. GERAÇÃO DE TRILHAS VÁLIDAS (PURE BACKTRACKING)
-% ---------------------------------------------------------
+% base_sem_ciclos/0
+%
+% Verifica todas as disciplinas cadastradas.
+% A regra e verdadeira somente quando nenhuma disciplina
+% participa de um ciclo.
 
-% trilha_valida(+Aluno, +MaxCreditosPorSemestre, -Trilha)
-% Gera uma sequência de semestres (listas de disciplinas) até a formatura.
+base_sem_ciclos :-
+    \+ (
+        disciplina(Disciplina, _, _, _),
+        existe_ciclo(Disciplina)
+    ).
+
+
+% =========================================================
+% 3. GERACAO DE TRILHAS
+% =========================================================
+
+% trilha_valida(
+%     +Aluno,
+%     +MaxCreditosPorSemestre,
+%     -Trilha
+% )
+%
+% A Trilha e uma lista de semestres.
+% Cada semestre tambem e uma lista de disciplinas.
+%
+% Exemplo:
+%
+% [
+%     [poo, seguranca_informacao],
+%     [programacao_logica_funcional],
+%     [inteligencia_artificial]
+% ]
+
 trilha_valida(Aluno, MaxCreditos, Trilha) :-
+    % O aluno precisa estar cadastrado.
     aluno(Aluno),
-    disciplinas_pendentes(Aluno, PendentesIniciais),
-    findall(D, cursou(Aluno, D), CursadasIniciais),
-    % Limite máximo de segurança: 12 semestres simulados
-    simular_semestres(PendentesIniciais, CursadasIniciais, MaxCreditos, 12, Trilha).
 
-% Caso base: Todas as disciplinas obrigatórias foram alocadas
-simular_semestres([], _, _, _, []) :- !.
+    % Evita erro caso o limite seja uma variavel,
+    % texto ou outro valor invalido.
+    number(MaxCreditos),
+    MaxCreditos > 0,
 
-% Trava de segurança: atinge o limite de semestres sem concluir
-simular_semestres(_, _, _, 0, _) :- !, fail.
+    % Uma base com ciclos nao pode gerar uma trilha segura.
+    base_sem_ciclos,
 
-% Passo recursivo de simulação por semestre
-simular_semestres(Pendentes, Cursadas, MaxCreditos, SemestresRestantes, [SemestreAtual | RestoTrilha]) :-
+    % Coleta as obrigatorias ainda nao concluidas.
+    disciplinas_pendentes(
+        Aluno,
+        PendentesIniciais
+    ),
+
+    % Coleta o historico inicial do aluno.
+    findall(
+        Disciplina,
+        cursou(Aluno, Disciplina),
+        Historico
+    ),
+
+    % Remove possiveis repeticoes no historico.
+    sort(Historico, CursadasIniciais),
+
+    % Limite de seguranca: no maximo 12 semestres.
+    simular_semestres(
+        PendentesIniciais,
+        CursadasIniciais,
+        MaxCreditos,
+        12,
+        Trilha
+    ).
+
+
+% =========================================================
+% 4. SIMULACAO DOS SEMESTRES
+% =========================================================
+
+% Caso base:
+% quando nao existem disciplinas pendentes, a trilha terminou.
+
+simular_semestres([], _, _, _, []).
+
+
+% Caso recursivo:
+% ainda existem disciplinas pendentes e semestres disponiveis.
+
+simular_semestres(
+    Pendentes,
+    Cursadas,
+    MaxCreditos,
+    SemestresRestantes,
+    [SemestreAtual | RestoTrilha]
+) :-
+    Pendentes \= [],
     SemestresRestantes > 0,
-    selecionar_disciplinas_semestre(Pendentes, Cursadas, MaxCreditos, SemestreAtual),
-    SemestreAtual \= [], % Exige progresso (semestre não pode ser vazio)
-    
-    % Atualiza disciplinas pendentes e cursadas para o próximo semestre simulado
-    subtract(Pendentes, SemestreAtual, NovasPendentes),
-    append(SemestreAtual, Cursadas, NovasCursadas),
-    
-    ProximoLimite is SemestresRestantes - 1,
-    simular_semestres(NovasPendentes, NovasCursadas, MaxCreditos, ProximoLimite, RestoTrilha).
 
-% Seleciona um subconjunto de disciplinas cujos pré-requisitos foram satisfeitos
-selecionar_disciplinas_semestre(Pendentes, Cursadas, MaxCreditos, Selecionadas) :-
-    findall(D, (member(D, Pendentes), requisitos_cumpridos(D, Cursadas)), Elegiveis),
-    subconjunto_com_limite(Elegiveis, MaxCreditos, Selecionadas).
+    % Escolhe um conjunto valido de disciplinas
+    % para o semestre atual.
+    selecionar_disciplinas_semestre(
+        Pendentes,
+        Cursadas,
+        MaxCreditos,
+        SemestreAtual
+    ),
+
+    % Impede a criacao de semestres vazios.
+    SemestreAtual \= [],
+
+    % Remove do conjunto de pendentes as disciplinas
+    % escolhidas para o semestre atual.
+    subtract(
+        Pendentes,
+        SemestreAtual,
+        NovasPendentes
+    ),
+
+    % Adiciona as novas disciplinas ao historico simulado.
+    append(
+        SemestreAtual,
+        Cursadas,
+        NovoHistorico
+    ),
+
+    % Diminui o limite de semestres.
+    NovoLimite is SemestresRestantes - 1,
+
+    % Continua a simulacao.
+    simular_semestres(
+        NovasPendentes,
+        NovoHistorico,
+        MaxCreditos,
+        NovoLimite,
+        RestoTrilha
+    ).
+
+
+% =========================================================
+% 5. SELECAO DAS DISCIPLINAS DO SEMESTRE
+% =========================================================
+
+% selecionar_disciplinas_semestre(
+%     +Pendentes,
+%     +Cursadas,
+%     +MaxCreditos,
+%     -Selecionadas
+% )
+%
+% Primeiro encontra todas as disciplinas elegiveis.
+% Depois gera subconjuntos que respeitam o limite de creditos.
+
+selecionar_disciplinas_semestre(
+    Pendentes,
+    Cursadas,
+    MaxCreditos,
+    Selecionadas
+) :-
+    findall(
+        Disciplina,
+        (
+            member(Disciplina, Pendentes),
+            requisitos_cumpridos(
+                Disciplina,
+                Cursadas
+            )
+        ),
+        ElegiveisBrutas
+    ),
+
+    % Evita disciplinas duplicadas.
+    sort(ElegiveisBrutas, Elegiveis),
+
+    subconjunto_com_limite(
+        Elegiveis,
+        MaxCreditos,
+        Selecionadas
+    ).
+
+
+% requisitos_cumpridos(+Disciplina, +Cursadas)
+%
+% Todos os pre-requisitos diretos precisam fazer parte
+% do historico acumulado.
+%
+% Como cada nivel da cadeia e verificado semestre a
+% semestre, os pre-requisitos indiretos tambem acabam
+% sendo respeitados.
 
 requisitos_cumpridos(Disciplina, Cursadas) :-
-    forall(prerequisito(Disciplina, Pre), member(Pre, Cursadas)).
+    forall(
+        prerequisito(Disciplina, PreRequisito),
+        member(PreRequisito, Cursadas)
+    ).
 
-% Gera combinações de disciplinas respeitando o limite máximo de créditos
+
+% =========================================================
+% 6. SUBCONJUNTOS COM LIMITE DE CREDITOS
+% =========================================================
+
+% Caso base:
+% nao existem mais disciplinas para analisar.
+
 subconjunto_com_limite([], _, []).
-subconjunto_com_limite([D | Resto], MaxCreditos, [D | Selecionados]) :-
-    disciplina(D, _, Creditos, _),
+
+
+% Opcao 1:
+% inclui a disciplina atual quando ela cabe no limite.
+
+subconjunto_com_limite(
+    [Disciplina | Resto],
+    MaxCreditos,
+    [Disciplina | Selecionadas]
+) :-
+    disciplina(
+        Disciplina,
+        _,
+        Creditos,
+        _
+    ),
+
     Creditos =< MaxCreditos,
-    NovoMax is MaxCreditos - Creditos,
-    subconjunto_com_limite(Resto, NovoMax, Selecionados).
-subconjunto_com_limite([_ | Resto], MaxCreditos, Selecionados) :-
-    subconjunto_com_limite(Resto, MaxCreditos, Selecionados).
+
+    CreditosRestantes is MaxCreditos - Creditos,
+
+    subconjunto_com_limite(
+        Resto,
+        CreditosRestantes,
+        Selecionadas
+    ).
+
+
+% Opcao 2:
+% nao inclui a disciplina atual.
+%
+% O backtracking permite retornar a este ponto e testar
+% outras combinacoes de disciplinas.
+
+subconjunto_com_limite(
+    [_ | Resto],
+    MaxCreditos,
+    Selecionadas
+) :-
+    subconjunto_com_limite(
+        Resto,
+        MaxCreditos,
+        Selecionadas
+    ).
