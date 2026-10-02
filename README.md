@@ -362,27 +362,4 @@ Mais detalhes estão em [`docs/decisoes.md`](docs/decisoes.md).
 | `Stack limit exceeded` | Tentativa de materializar todas as trilhas | Use `once/1`, `limit/2` ou `findnsols/4` |
 | caminho funciona localmente, mas não no SWISH | Os arquivos não foram salvos no mesmo programa | Use a opção de arquivo único ou ajuste `ensure_loaded/1` |
 
-## Cobertura dos requisitos acadêmicos
-
-- [x] base com disciplinas obrigatórias e eletivas;
-- [x] grade com seis períodos;
-- [x] cadeia de pré-requisitos com profundidade mínima de três;
-- [x] três perfis fictícios de estudantes;
-- [x] uso de `forall/2`, negação por falha e agregação de soluções;
-- [x] fecho transitivo e detecção de ciclos;
-- [x] geração de múltiplas trilhas por *backtracking*;
-- [x] limite de créditos e máximo de 12 semestres;
-- [x] demonstração e consultas independentes;
-- [x] documentação das decisões de modelagem.
-
-## Próximas evoluções
-
-- transformar as consultas em testes automatizados com `plunit`;
-- gerar um relatório visual da trilha escolhida;
-- permitir uma quantidade mínima configurável de créditos eletivos;
-- considerar oferta por período, choque de horários e limite mínimo de créditos;
-- fornecer mensagens de erro mais descritivas para entradas inválidas.
-
----
-
 Projeto desenvolvido para fins acadêmicos e para demonstrar programação lógica, recursão, negação por falha e busca com *backtracking* em Prolog.
